@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Firebow Platform</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <header>
+    <h1>Firebow - Build & Deploy Websites</h1>
+  </header>
+  <div id="container">
+    <div id="sidebar">
+      <h2>Files</h2>
+      <ul id="files"></ul>
+      <button id="add-file">Add File</button>
+      <button id="delete-file">Delete File</button>
+      <button id="rename-file">Rename File</button>
+      <button id="save-file">Save File</button>
+      <button id="deploy">Deploy</button>
+    </div>
+    <div id="editor-preview">
+      <textarea id="editor"></textarea>
+      <iframe id="preview-frame"></iframe>
+    </div>
+  </div>
+
+  <!-- JSZip library -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+  <script src="script.js"></script>
+</body>
+</html>
