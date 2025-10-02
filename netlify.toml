@@ -1,0 +1,7 @@
+[build]
+  publish = "public"       # folder containing your front-end files
+  command = ""             # empty, no Python build needed
+  functions = "functions"  # your serverless functions folder
+
+[dev]
+  functions = "functions"
