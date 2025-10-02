@@ -1,0 +1,7 @@
+spyder
+black
+ruff
+pylint
+ipython
+jupyter
+spyder-kernels
