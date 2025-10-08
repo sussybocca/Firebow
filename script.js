@@ -51,4 +51,33 @@ document.getElementById('delete-file').onclick = () => {
         const remaining = Object.keys(files)[0];
         currentFile = remaining;
         renderFileList();
-        loadFile(curre
+        loadFile(currentFile);
+    }
+};
+
+document.getElementById('rename-file').onclick = () => {
+    const newName = prompt('Enter new name for the file:', currentFile);
+    if (newName && !files[newName]) {
+        files[newName] = files[currentFile];
+        delete files[currentFile];
+        currentFile = newName;
+        renderFileList();
+        loadFile(currentFile);
+    }
+};
+
+// --- Live Preview ---
+function updatePreview() {
+    if (!files["firebow.html"]) return;
+    const blob = new Blob([files["firebow.html"]], {type: 'text/html'});
+    previewFrame.src = URL.createObjectURL(blob);
+}
+
+editor.addEventListener('input', () => {
+    files[currentFile] = editor.value;
+    updatePreview();
+});
+
+// --- Initialize ---
+renderFileList();
+loadFile(currentFile);
