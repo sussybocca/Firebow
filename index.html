@@ -7,8 +7,9 @@
 </head>
 <body>
   <header>
-    <h1>Firebow - Build & Deploy Websites</h1>
+    <h1>🔥 Firebow – Build & Deploy Websites</h1>
   </header>
+
   <div id="container">
     <div id="sidebar">
       <h2>Files</h2>
@@ -17,16 +18,100 @@
       <button id="delete-file">Delete File</button>
       <button id="rename-file">Rename File</button>
       <button id="save-file">Save File</button>
-      <button id="deploy">Deploy</button>
+
+      <hr />
+
+      <button id="deploy">🚀 Deploy to Netlify</button>
+      <input type="password" id="netlify-token" placeholder="Enter Netlify Access Token">
+      <div id="deploy-status"></div>
     </div>
+
     <div id="editor-preview">
-      <textarea id="editor"></textarea>
+      <textarea id="editor" placeholder="Start coding..."></textarea>
       <iframe id="preview-frame"></iframe>
     </div>
   </div>
 
-  <!-- JSZip library -->
+  <!-- JSZip (optional if you compress projects) -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+
+  <!-- Main Firebow logic -->
   <script src="script.js"></script>
+
+  <!-- Netlify deploy integration -->
+  <script>
+  // Frontend-only Firebow deploy integration
+  async function deployToNetlify(files, siteName) {
+    const token = document.getElementById("netlify-token").value.trim();
+    const status = document.getElementById("deploy-status");
+
+    if (!token) {
+      status.textContent = "⚠️ Please enter your Netlify Access Token.";
+      return;
+    }
+
+    status.textContent = "🛠️ Creating site and uploading files...";
+
+    try {
+      // 1️⃣ Create a new site
+      const siteResp = await fetch("https://api.netlify.com/api/v1/sites", {
+        method: "POST",
+        headers: {
+          "Authorization": `Bearer ${token}`,
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({
+          name: siteName || `firebow-${Math.random().toString(36).slice(2,8)}`
+        })
+      });
+
+      const siteData = await siteResp.json();
+      if (!siteResp.ok) throw new Error(siteData.message);
+      const siteId = siteData.site_id;
+      const deployUrl = siteData.ssl_url || siteData.url;
+
+      // 2️⃣ Upload project files
+      for (const [path, content] of Object.entries(files)) {
+        const upload = await fetch(`https://api.netlify.com/api/v1/sites/${siteId}/files/${path}`, {
+          method: "PUT",
+          headers: {
+            "Authorization": `Bearer ${token}`,
+            "Content-Type": "text/plain"
+          },
+          body: content
+        });
+        if (!upload.ok) throw new Error(`Upload failed for ${path}`);
+      }
+
+      status.innerHTML = `✅ Deployed successfully! <a href="${deployUrl}" target="_blank">${deployUrl}</a>`;
+    } catch (err) {
+      status.textContent = `❌ Deployment error: ${err.message}`;
+    }
+  }
+
+  // Connect "Deploy" button
+  document.getElementById("deploy").addEventListener("click", async () => {
+    // Gather project files from the Firebow editor
+    const editor = document.getElementById("editor");
+    const htmlContent = editor.value || "<h1>Hello from Firebow!</h1>";
+
+    // Default project template
+    const files = {
+      "index.html": `<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Firebow Project</title>
+</head>
+<body>
+  ${htmlContent}
+</body>
+</html>`
+    };
+
+    await deployToNetlify(files, "firebow-project");
+  });
+  </script>
 </body>
 </html>
