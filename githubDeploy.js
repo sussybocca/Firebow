@@ -1,21 +1,21 @@
 document.getElementById('deploy').onclick = async () => {
-    // --- Get token ---
-    let token = localStorage.getItem("github-token");
+    const status = document.getElementById("deploy-status");
+
+    // --- Always prompt for token ---
+    const token = prompt("Enter your GitHub Access Token to deploy your project:");
     if (!token) {
-        token = prompt("Enter your GitHub Access Token to deploy your project:");
-        if (!token) return alert("GitHub token is required to deploy.");
-        localStorage.setItem("github-token", token);
+        alert("GitHub token is required to deploy.");
+        return;
     }
 
     // --- Save current editor content ---
     files[currentFile] = editor.value;
 
     const repoName = `firebow-project-${Math.random().toString(36).slice(2,8)}`;
-    const status = document.getElementById("deploy-status");
     status.textContent = "🛠️ Deploying to GitHub...";
 
     try {
-        // 1️⃣ Create new repo
+        // 1️⃣ Create a new repo
         const createRepoResp = await fetch("https://api.github.com/user/repos", {
             method: "POST",
             headers: {
@@ -26,9 +26,9 @@ document.getElementById('deploy').onclick = async () => {
         });
 
         const repoData = await createRepoResp.json();
-        if (!createRepoResp.ok) throw new Error(repoData.message);
+        if (!createRepoResp.ok) throw new Error(createRepoResp.status + ": " + (repoData.message || "Unknown error"));
 
-        // 2️⃣ Commit files
+        // 2️⃣ Upload files
         for (const [path, content] of Object.entries(files)) {
             const commitResp = await fetch(`https://api.github.com/repos/${repoData.owner.login}/${repoName}/contents/${path}`, {
                 method: "PUT",
@@ -38,4 +38,18 @@ document.getElementById('deploy').onclick = async () => {
                 },
                 body: JSON.stringify({
                     message: `Add ${path}`,
-                    content: b
+                    content: btoa(unescape(encodeURIComponent(content)))
+                })
+            });
+
+            const commitData = await commitResp.json();
+            if (!commitResp.ok) throw new Error(commitResp.status + ": " + (commitData.message || "Commit failed"));
+        }
+
+        status.innerHTML = `✅ Project deployed! <a href="https://github.com/${repoData.owner.login}/${repoName}" target="_blank">View on GitHub</a>`;
+
+    } catch (err) {
+        console.error(err);
+        status.textContent = `❌ Deployment failed: ${err.message}`;
+    }
+};
