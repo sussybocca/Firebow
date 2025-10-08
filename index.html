@@ -21,15 +21,14 @@
 
     <hr />
 
-    <!-- OAuth login -->
-    <button id="netlify-login">Login with Netlify</button>
-    <input type="text" id="oauth-code" placeholder="Paste Netlify code here">
-    <button id="submit-oauth">Submit Code</button>
+    <h3>GitHub Login</h3>
+    <input type="text" id="github-token" placeholder="Enter GitHub token">
+    <button id="github-login">Login</button>
     <div id="login-status"></div>
 
     <hr />
 
-    <button id="deploy">🚀 Deploy to Netlify</button>
+    <button id="deploy">🚀 Deploy to GitHub</button>
     <div id="deploy-status"></div>
   </div>
 
@@ -39,8 +38,7 @@
   </div>
 </div>
 
-<script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
 <script src="script.js"></script>
-<script src="netlifyDeploy.js"></script>
+<script src="githubDeploy.js"></script>
 </body>
 </html>
