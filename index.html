@@ -1,44 +1,46 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <title>Firebow Platform</title>
-  <link rel="stylesheet" href="style.css">
+<meta charset="UTF-8">
+<title>Firebow Platform</title>
+<link rel="stylesheet" href="style.css">
 </head>
 <body>
-  <header>
-    <h1>🔥 Firebow – Build & Deploy Websites</h1>
-  </header>
+<header>
+  <h1>🔥 Firebow – Build & Deploy Websites</h1>
+</header>
 
-  <div id="container">
-    <div id="sidebar">
-      <h2>Files</h2>
-      <ul id="files"></ul>
-      <button id="add-file">Add File</button>
-      <button id="delete-file">Delete File</button>
-      <button id="rename-file">Rename File</button>
-      <button id="save-file">Save File</button>
+<div id="container">
+  <div id="sidebar">
+    <h2>Files</h2>
+    <ul id="files"></ul>
+    <button id="add-file">Add File</button>
+    <button id="delete-file">Delete File</button>
+    <button id="rename-file">Rename File</button>
+    <button id="save-file">Save File</button>
 
-      <hr />
+    <hr />
 
-      <button id="deploy">🚀 Deploy to Netlify</button>
-      <input type="password" id="netlify-token" placeholder="Enter Netlify Access Token">
-      <div id="deploy-status"></div>
-    </div>
+    <!-- OAuth login -->
+    <button id="netlify-login">Login with Netlify</button>
+    <input type="text" id="oauth-code" placeholder="Paste Netlify code here">
+    <button id="submit-oauth">Submit Code</button>
+    <div id="login-status"></div>
 
-    <div id="editor-preview">
-      <textarea id="editor" placeholder="Start coding..."></textarea>
-      <iframe id="preview-frame"></iframe>
-    </div>
+    <hr />
+
+    <button id="deploy">🚀 Deploy to Netlify</button>
+    <div id="deploy-status"></div>
   </div>
 
-  <!-- JSZip (optional for compressing) -->
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+  <div id="editor-preview">
+    <textarea id="editor" placeholder="Start coding..."></textarea>
+    <iframe id="preview-frame"></iframe>
+  </div>
+</div>
 
-  <!-- Main Firebow logic -->
-  <script src="script.js"></script>
-
-  <!-- Netlify deploy integration -->
-  <script src="netlifyDeploy.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+<script src="script.js"></script>
+<script src="netlifyDeploy.js"></script>
 </body>
 </html>

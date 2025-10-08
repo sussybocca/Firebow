@@ -1,61 +1,97 @@
-// netlifyDeploy.js
+// --- Netlify OAuth Login ---
+document.getElementById("netlify-login").onclick = () => {
+    const clientId = "uGQtWR4ysLmkuAR-KJ-ei4LT_FMdtZ_fhzZ5-a78RCM";
+    const url = `https://app.netlify.com/authorize?client_id=${clientId}&response_type=code&redirect_uri=urn:ietf:wg:oauth:2.0:oob`;
+    window.open(url, "_blank");
+};
 
-async function deployToNetlify(files, siteName) {
-  const token = document.getElementById("netlify-token").value.trim();
-  const status = document.getElementById("deploy-status");
+document.getElementById("submit-oauth").onclick = async () => {
+    const code = document.getElementById("oauth-code").value.trim();
+    const status = document.getElementById("login-status");
+    if (!code) return alert("Paste the code from Netlify.");
 
-  if (!token) {
-    status.textContent = "⚠️ Please enter your Netlify Access Token.";
-    return;
-  }
+    try {
+        const clientId = "uGQtWR4ysLmkuAR-KJ-ei4LT_FMdtZ_fhzZ5-a78RCM";
+        const clientSecret = "81dMQl_enqBalvLTiPDgKvODw2HgmenP246dIxaaXWM";
 
-  status.textContent = "🛠️ Deploying...";
+        const body = new URLSearchParams({
+            grant_type: "authorization_code",
+            code: code,
+            client_id: clientId,
+            client_secret: clientSecret,
+            redirect_uri: "urn:ietf:wg:oauth:2.0:oob"
+        });
 
-  try {
-    // 1️⃣ Create a new Netlify site
-    const siteResponse = await fetch("https://api.netlify.com/api/v1/sites", {
-      method: "POST",
-      headers: {
-        "Authorization": `Bearer ${token}`,
-        "Content-Type": "application/json"
-      },
-      body: JSON.stringify({
-        name: siteName || `firebow-${Math.random().toString(36).substr(2, 6)}`
-      })
-    });
+        const res = await fetch("https://api.netlify.com/oauth/token", {
+            method: "POST",
+            headers: { "Content-Type": "application/x-www-form-urlencoded" },
+            body: body.toString()
+        });
 
-    const siteData = await siteResponse.json();
-    if (!siteResponse.ok) throw new Error(siteData.message);
+        if (!res.ok) throw new Error("Failed to exchange code for token");
 
-    const siteId = siteData.site_id;
-    const deployUrl = siteData.ssl_url;
-
-    // 2️⃣ Upload files (HTML, CSS, JS)
-    for (const [path, content] of Object.entries(files)) {
-      const upload = await fetch(`https://api.netlify.com/api/v1/sites/${siteId}/files/${path}`, {
-        method: "PUT",
-        headers: {
-          "Authorization": `Bearer ${token}`,
-          "Content-Type": "text/plain"
-        },
-        body: content
-      });
-      if (!upload.ok) throw new Error(`Upload failed for ${path}`);
+        const data = await res.json();
+        localStorage.setItem("netlify-token", data.access_token);
+        status.textContent = "✅ Logged in! Token saved locally.";
+    } catch (err) {
+        console.error(err);
+        status.textContent = `❌ OAuth error: ${err.message}`;
     }
+};
 
-    status.innerHTML = `✅ Deployed successfully! <a href="${deployUrl}" target="_blank">${deployUrl}</a>`;
-  } catch (err) {
-    status.textContent = `❌ Error: ${err.message}`;
-  }
+// --- Deploy using token ---
+async function deployToNetlify(files) {
+    const token = localStorage.getItem("netlify-token");
+    const status = document.getElementById("deploy-status");
+    if (!token) return alert("Login with Netlify first.");
+
+    status.textContent = "🛠️ Deploying...";
+
+    try {
+        // Create site
+        const siteResp = await fetch("https://api.netlify.com/api/v1/sites", {
+            method: "POST",
+            headers: {
+                "Authorization": `Bearer ${token}`,
+                "Content-Type": "application/json"
+            },
+            body: JSON.stringify({
+                name: `firebow-${Math.random().toString(36).slice(2,8)}`
+            })
+        });
+
+        const siteData = await siteResp.json();
+        if (!siteResp.ok) throw new Error(siteData.message || "Site creation failed");
+
+        const siteId = siteData.site_id;
+        const deployUrl = siteData.ssl_url || siteData.url;
+
+        // Upload all files
+        for (const [path, content] of Object.entries(files)) {
+            const uploadResp = await fetch(`https://api.netlify.com/api/v1/sites/${siteId}/files/${path}`, {
+                method: "PUT",
+                headers: {
+                    "Authorization": `Bearer ${token}`,
+                    "Content-Type": "text/plain"
+                },
+                body: content
+            });
+
+            if (!uploadResp.ok) {
+                const errText = await uploadResp.text();
+                throw new Error(`Upload failed for ${path}: ${errText}`);
+            }
+        }
+
+        status.innerHTML = `✅ Deployed successfully! <a href="${deployUrl}" target="_blank">${deployUrl}</a>`;
+    } catch (err) {
+        console.error(err);
+        status.textContent = `❌ Deployment error: ${err.message}`;
+    }
 }
 
-// Example usage
-document.getElementById("deploy-btn").addEventListener("click", async () => {
-  const files = {
-    "index.html": "<h1>Hello from Firebow!</h1>",
-    "style.css": "body { font-family: sans-serif; }",
-    "script.js": "console.log('Deployed from Firebow!');"
-  };
-
-  await deployToNetlify(files, "firebow-demo-site");
-});
+// Hook deploy button
+document.getElementById('deploy').onclick = () => {
+    files[currentFile] = editor.value;
+    deployToNetlify(files);
+};
